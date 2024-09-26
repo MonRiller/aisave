@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aisave"
+authors = [
+    {name = "Ronald Miller", email = "ronmiller2025@gmail.com"},
+]
+description = "Artificial Intelligence System Analysis of Vulnerabilities and Exploits"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = {text = "MIT License"}
+version = "0.1"
+dependencies = [
+    "sqlite3",
+    "PyQt5",
+]
+requires-python = ">= 3.8"
+
+[project.gui-scripts]
+aisave="aisave:main"
+
+[project.urls]
+Repository = "https://github.com/MonRiller/aisave"
