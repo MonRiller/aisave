@@ -1,0 +1,13 @@
+LICENSE
+README.md
+pyproject.toml
+aisave/__init__.py
+aisave/crypto.py
+aisave/cve.py
+aisave/gui.py
+aisave.egg-info/PKG-INFO
+aisave.egg-info/SOURCES.txt
+aisave.egg-info/dependency_links.txt
+aisave.egg-info/entry_points.txt
+aisave.egg-info/requires.txt
+aisave.egg-info/top_level.txt

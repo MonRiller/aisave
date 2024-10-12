@@ -1,0 +1,15 @@
+Metadata-Version: 2.1
+Name: aisave
+Version: 0.1
+Summary: Artificial Intelligence System Analysis of Vulnerabilities and Exploits
+Author-email: Ronald Miller <ronmiller2025@gmail.com>
+License: MIT License
+Project-URL: Repository, https://github.com/MonRiller/aisave
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: customtkinter
+Requires-Dist: pycryptodome
+
+# Artificial Intelligence System Analysis of Vulnerabilities and Exploits
+## (AISAVE)
