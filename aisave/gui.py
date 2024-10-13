@@ -243,14 +243,14 @@ class CheckList(ctk.CTkScrollableFrame):
         self.items = []
         if len(options) > 0:
             for i, option in enumerate(options):
-                self.items.append(ctk.CTkCheckBox(self, text=option, on_value=1, off_value=0))
+                self.items.append(ctk.CTkCheckBox(self, text=option, onvalue=1, offvalue=0))
                 self.items[i].grid(row=i, column=0, padx=10, pady=5)
         else:
             self.empty = ctk.CTkLabel(self, text="None to display")
             self.empty.grid(row=0, column=0, padx=10, pady=5)
 
     def get(self):
-        return [item.cget("text") for item in self.items if self.item.get() == 1]
+        return [item.cget("text") for item in self.items if item.get() == 1]
 
 class HardwareFrame(ctk.CTkFrame):
     class AddPopup(ctk.CTkToplevel):
@@ -261,32 +261,38 @@ class HardwareFrame(ctk.CTkFrame):
             self.refresh = refresh
 
             self.name_label = ctk.CTkLabel(self, text="Name:", anchor="w")
-            self.name_label.grid(row=1, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
+            self.name_label.grid(row=0, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
 
             self.name_entry = ctk.CTkEntry(self)
             self.name_entry.bind("<Return>", lambda event: self.add())
-            self.name_entry.grid(row=2, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+            self.name_entry.grid(row=1, column=0, columnspan=2, sticky="new", padx=10, pady=0)
 
             self.description_label = ctk.CTkLabel(self, text="Description:", anchor="w")
-            self.description_label.grid(row=5, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
+            self.description_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
 
-            self.description_entry = ctk.CTkTextbox(self, border_width=2, border_color=("#a0a0a0", "#606060"))
-            self.description_entry.grid(row=6, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+            self.description_entry = ctk.CTkTextbox(self, height=150, border_width=2, border_color=("#a0a0a0", "#606060"))
+            self.description_entry.grid(row=3, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+
+            self.software_label = ctk.CTkLabel(self, text="Software:", anchor="w")
+            self.software_label.grid(row=4, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+
+            self.software_checklist = CheckList(self, sorted(info["systems"][sysname]["software"].keys()))
+            self.software_checklist.grid(row=5, column=0, columnspan=2, sticky="new", padx=10, pady=5)
 
             self.vulnerabilities_label = ctk.CTkLabel(self, text="Vulnerabilities:", anchor="w")
-            self.vulnerabilities_label.grid(row=7, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+            self.vulnerabilities_label.grid(row=6, column=0, columnspan=2, sticky="new", padx=10, pady=5)
 
             self.vulnerabilities_checklist = CheckList(self, sorted(info["systems"][sysname]["hardware vulnerabilities"].keys()))
-            self.vulnerabilities_checklist.grid(row=8, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+            self.vulnerabilities_checklist.grid(row=7, column=0, columnspan=2, sticky="new", padx=10, pady=5)
 
             self.adder = ReturnButton(self, text="Add", command=self.add)
-            self.adder.grid(row=9, column=0, sticky="new", padx=(10, 5), pady=5)
+            self.adder.grid(row=8, column=0, sticky="new", padx=(10, 5), pady=5)
 
             self.cancel = ReturnButton(self, text="Cancel", command=self.destroy)
-            self.cancel.grid(row=9, column=1, sticky="new", padx=(5, 10), pady=5)
+            self.cancel.grid(row=8, column=1, sticky="new", padx=(5, 10), pady=5)
 
             self.warning = ctk.CTkLabel(self, text="", text_color="red")
-            self.warning.grid(row=10, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+            self.warning.grid(row=9, column=0, columnspan=2, sticky="new", padx=10, pady=5)
 
         def add(self):
             if self.name_entry.get() == "":
@@ -297,7 +303,7 @@ class HardwareFrame(ctk.CTkFrame):
                 self.warning.configure(text=f"Hardware {self.name_entry.get()} already exists")
                 return
 
-            self.info["systems"][self.sysname]["hardware"][self.name_entry.get()] = {"description":  self.description_entry.get("0.0", "end"), "vulnerabilities":self.vulnerabilities_checklist.get()}
+            self.info["systems"][self.sysname]["hardware"][self.name_entry.get()] = {"description":  self.description_entry.get("0.0", "end"), "software":self.software_checklist.get(), "vulnerabilities":self.vulnerabilities_checklist.get()}
             self.refresh(self.info["systems"][self.sysname]["hardware"].keys())
             self.destroy()
 
@@ -309,33 +315,43 @@ class HardwareFrame(ctk.CTkFrame):
             self.hardname = hardname
 
             self.name_label = ctk.CTkLabel(self, text="Name:", anchor="w")
-            self.name_label.grid(row=1, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
+            self.name_label.grid(row=0, column=0, sticky="w", padx=10, pady=(10,0))
 
             self.name_entry = ctk.CTkEntry(self)
             self.name_entry.insert(0, hardname)
             self.name_entry.configure(state="disabled")
-            self.name_entry.grid(row=2, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+            self.name_entry.grid(row=1, column=0, sticky="new", padx=10, pady=0)
 
             self.description_label = ctk.CTkLabel(self, text="Description:", anchor="w")
-            self.description_label.grid(row=5, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
+            self.description_label.grid(row=2, column=0, sticky="w", padx=10, pady=(10,0))
 
-            self.description_entry = ctk.CTkTextbox(self, border_width=2, border_color=("#a0a0a0", "#606060"))
+            self.description_entry = ctk.CTkTextbox(self, height=150, border_width=2, border_color=("#a0a0a0", "#606060"))
             self.description_entry.insert("0.0", info["systems"][sysname]["hardware"][hardname]["description"])
             self.description_entry.configure(state="disabled")
-            self.description_entry.grid(row=6, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+            self.description_entry.grid(row=3, column=0, sticky="new", padx=10, pady=0)
+
+            self.software_label = ctk.CTkLabel(self, text="Software:", anchor="w")
+            self.software_label.grid(row=4, column=0, sticky="new", padx=10, pady=5)
+
+            self.software_checklist= CheckList(self, sorted(info["systems"][sysname]["software"].keys()))
+            for item in self.software_checklist.items:
+                if item.cget("text") in info["systems"][sysname]["hardware"][hardname]["software"]:
+                    item.select()
+                item.configure(state="disabled")
+            self.software_checklist.grid(row=5, column=0, sticky="new", padx=10, pady=5)
 
             self.vulnerabilities_label = ctk.CTkLabel(self, text="Vulnerabilities:", anchor="w")
-            self.vulnerabilities_label.grid(row=7, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+            self.vulnerabilities_label.grid(row=6, column=0, sticky="new", padx=10, pady=5)
 
             self.vulnerabilities_checklist = CheckList(self, sorted(info["systems"][sysname]["hardware vulnerabilities"].keys()))
             for item in self.vulnerabilities_checklist.items:
-                if item.cget("text") in info["systems"][sysname][hardname]["vulnerabilities"]:
+                if item.cget("text") in info["systems"][sysname]["hardware"][hardname]["vulnerabilities"]:
                     item.select()
                 item.configure(state="disabled")
-            self.vulnerabilities_checklist.grid(row=8, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+            self.vulnerabilities_checklist.grid(row=7, column=0, sticky="new", padx=10, pady=5)
 
             self.close = ReturnButton(self, text="Close", command=self.destroy)
-            self.close.grid(row=9, column=1, padx=10, pady=5)
+            self.close.grid(row=8, column=0, padx=10, pady=5)
 
     class EditPopup(ctk.CTkToplevel):
         def __init__(self, master, info, sysname, hardname, refresh, *args, **kwargs):
@@ -346,37 +362,46 @@ class HardwareFrame(ctk.CTkFrame):
             self.refresh = refresh
 
             self.name_label = ctk.CTkLabel(self, text="Name:", anchor="w")
-            self.name_label.grid(row=1, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
+            self.name_label.grid(row=0, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
 
             self.name_entry = ctk.CTkEntry(self)
             self.name_entry.insert(0, hardname)
             self.name_entry.bind("<Return>", lambda event: self.edit())
-            self.name_entry.grid(row=2, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+            self.name_entry.grid(row=1, column=0, columnspan=2, sticky="new", padx=10, pady=0)
 
             self.description_label = ctk.CTkLabel(self, text="Description:", anchor="w")
-            self.description_label.grid(row=5, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
+            self.description_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
 
-            self.description_entry = ctk.CTkTextbox(self, border_width=2, border_color=("#a0a0a0", "#606060"))
+            self.description_entry = ctk.CTkTextbox(self, height=150, border_width=2, border_color=("#a0a0a0", "#606060"))
             self.description_entry.insert("0.0", info["systems"][sysname]["hardware"][hardname]["description"])
-            self.description_entry.grid(row=6, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+            self.description_entry.grid(row=3, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+
+            self.software_label = ctk.CTkLabel(self, text="Software:", anchor="w")
+            self.software_label.grid(row=4, column=0, sticky="new", padx=10, pady=5)
+
+            self.software_checklist= CheckList(self, sorted(info["systems"][sysname]["software"].keys()))
+            for item in self.software_checklist.items:
+                if item.cget("text") in info["systems"][sysname]["hardware"][hardname]["software"]:
+                    item.select()
+            self.software_checklist.grid(row=5, column=0, columnspan=2, sticky="new", padx=10, pady=5)
 
             self.vulnerabilities_label = ctk.CTkLabel(self, text="Vulnerabilities:", anchor="w")
-            self.vulnerabilities_label.grid(row=7, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+            self.vulnerabilities_label.grid(row=6, column=0, columnspan=2, sticky="new", padx=10, pady=5)
 
             self.vulnerabilities_checklist = CheckList(self, sorted(info["systems"][sysname]["hardware vulnerabilities"].keys()))
             for item in self.vulnerabilities_checklist.items:
-                if item.cget("text") in info["systems"][sysname][hardname]["vulnerabilities"]:
+                if item.cget("text") in info["systems"][sysname]["hardware"][hardname]["vulnerabilities"]:
                     item.select()
-            self.vulnerabilities_checklist.grid(row=8, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+            self.vulnerabilities_checklist.grid(row=7, column=0, columnspan=2, sticky="new", padx=10, pady=5)
 
             self.applier = ReturnButton(self, text="Apply", command=self.apply)
-            self.applier.grid(row=9, column=0, sticky="new", padx=(10, 5), pady=5)
+            self.applier.grid(row=8, column=0, sticky="new", padx=(10, 5), pady=5)
 
             self.cancel = ReturnButton(self, text="Cancel", command=self.destroy)
-            self.cancel.grid(row=9, column=1, sticky="new", padx=(5, 10), pady=5)
+            self.cancel.grid(row=8, column=1, sticky="new", padx=(5, 10), pady=5)
 
             self.warning = ctk.CTkLabel(self, text="", text_color="red")
-            self.warning.grid(row=10, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+            self.warning.grid(row=9, column=0, columnspan=2, sticky="new", padx=10, pady=5)
 
         def apply(self):
             if self.name_entry.get() != self.hardname:
@@ -388,30 +413,16 @@ class HardwareFrame(ctk.CTkFrame):
                     self.warning.configure(text=f"Hardware {self.name_entry.get()} already exists")
                     return
 
-            self.info["systems"][self.sysname]["hardware"][self.name_entry.get()] = {"description":  self.description_entry.get("0.0", "end"), "vulnerabilities":self.vulnerabilities_checklist.get()}
+            self.info["systems"][self.sysname]["hardware"][self.name_entry.get()] = {"description": self.description_entry.get("0.0", "end"), "software":self.software_checklist.get(), "vulnerabilities":self.vulnerabilities_checklist.get()}
 
             if self.name_entry.get() != self.hardname:
                 self.info["systems"][self.sysname]["hardware"].pop(self.hardname)
-                for vulnerabilitiy in self.info["systems"][self.sysname]["hardware vulnerabilities"].keys():
-                    if self.hardname in self.info["systems"][self.sysname]["hardware vulnerabilities"][vulnerability]["hardwares"]:
-                        self.info["systems"][self.sysname]["hardware vulnerabilities"][vulnerability]["hardwares"].remove(self.hardname)
-                        self.info["systems"][self.sysname]["hardware vulnerabilities"][vulnerability]["hardwares"].append(self.name_entry.get())
-                for software in self.info["systems"][self.sysname]["software"].keys():
-                    if self.hardname in self.info["systems"][self.sysname]["software"][software]["hardwares"]:
-                        self.info["systems"][self.sysname]["software"][software]["hardwares"].remove(self.hardname)
-                        self.info["systems"][self.sysname]["software"][software]["hardwares"].append(self.name_entry.get())
+
             self.refresh(self.info["systems"][self.sysname]["hardware"].keys())
             self.destroy()
 
     def delete(self, hardname):
         self.info["systems"][self.sysname]["hardware"].pop(hardname)
-        for vulnerabilitiy in self.info["systems"][self.sysname]["hardware vulnerabilities"].keys():
-            if hardname in self.info["systems"][self.sysname]["hardware vulnerabilities"][vulnerability]["hardwares"]:
-                self.info["systems"][self.sysname]["hardware vulnerabilities"][vulnerability]["hardwares"].remove(hardname)
-        for software in self.info["systems"][self.sysname]["software"].keys():
-            if self.hardname in self.info["systems"][self.sysname]["software"][software]["hardwares"]:
-                self.info["systems"][self.sysname]["software"][software]["hardwares"].remove(hardname)
-
 
     def __init__(self, master, info, sysname, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
@@ -429,6 +440,214 @@ class HardwareFrame(ctk.CTkFrame):
                                                 lambda hardname: self.delete(hardname),
                                                 fg_color="transparent")
         self.hardware_list.grid(row=1, column=0, sticky="nesw", padx=10, pady=5)
+
+class SoftwareFrame(ctk.CTkFrame):
+    class AddPopup(ctk.CTkToplevel):
+        def __init__(self, master, info, sysname, refresh, *args, **kwargs):
+            super().__init__(master, *args, **kwargs)
+            self.info = info
+            self.sysname = sysname
+            self.refresh = refresh
+
+            self.name_label = ctk.CTkLabel(self, text="Name:", anchor="w")
+            self.name_label.grid(row=0, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
+
+            self.name_entry = ctk.CTkEntry(self)
+            self.name_entry.bind("<Return>", lambda event: self.add())
+            self.name_entry.grid(row=1, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+
+            self.description_label = ctk.CTkLabel(self, text="Description:", anchor="w")
+            self.description_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
+
+            self.description_entry = ctk.CTkTextbox(self, height=150, border_width=2, border_color=("#a0a0a0", "#606060"))
+            self.description_entry.grid(row=3, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+
+            self.hardware_label= ctk.CTkLabel(self, text="Hardware:", anchor="w")
+            self.hardware_label.grid(row=4, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+
+            self.hardware_checklist= CheckList(self, sorted(info["systems"][sysname]["hardware"].keys()))
+            self.hardware_checklist.grid(row=5, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+
+            self.vulnerabilities_label = ctk.CTkLabel(self, text="Vulnerabilities:", anchor="w")
+            self.vulnerabilities_label.grid(row=6, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+
+            self.vulnerabilities_checklist = CheckList(self, sorted(info["systems"][sysname]["software vulnerabilities"].keys()))
+            self.vulnerabilities_checklist.grid(row=7, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+
+            self.adder = ReturnButton(self, text="Add", command=self.add)
+            self.adder.grid(row=8, column=0, sticky="new", padx=(10, 5), pady=5)
+
+            self.cancel = ReturnButton(self, text="Cancel", command=self.destroy)
+            self.cancel.grid(row=8, column=1, sticky="new", padx=(5, 10), pady=5)
+
+            self.warning = ctk.CTkLabel(self, text="", text_color="red")
+            self.warning.grid(row=9, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+
+        def add(self):
+            if self.name_entry.get() == "":
+                self.warning.configure(text="Must have non-empty name")
+                return
+
+            if self.name_entry.get() in self.info["systems"][self.sysname]["software"].keys():
+                self.warning.configure(text=f"Software {self.name_entry.get()} already exists")
+                return
+
+            self.info["systems"][self.sysname]["software"][self.name_entry.get()] = {"description":  self.description_entry.get("0.0", "end"), "vulnerabilities":self.vulnerabilities_checklist.get()}
+
+            for hardname in self.hardware_checklist.get():
+                self.info["systems"][self.sysname]["hardware"][hardname]["software"].append(self.name_entry.get())
+
+            self.refresh(self.info["systems"][self.sysname]["software"].keys())
+            self.destroy()
+
+    class DisplayPopup(ctk.CTkToplevel):
+        def __init__(self, master, info, sysname, softname, *args, **kwargs):
+            super().__init__(master, *args, **kwargs)
+            self.info = info
+            self.sysname = sysname
+            self.softname = softname 
+
+            self.name_label = ctk.CTkLabel(self, text="Name:", anchor="w")
+            self.name_label.grid(row=0, column=0, sticky="w", padx=10, pady=(10,0))
+
+            self.name_entry = ctk.CTkEntry(self)
+            self.name_entry.insert(0, softname)
+            self.name_entry.configure(state="disabled")
+            self.name_entry.grid(row=1, column=0, sticky="new", padx=10, pady=0)
+
+            self.description_label = ctk.CTkLabel(self, text="Description:", anchor="w")
+            self.description_label.grid(row=2, column=0, sticky="w", padx=10, pady=(10,0))
+
+            self.description_entry = ctk.CTkTextbox(self, height=150, border_width=2, border_color=("#a0a0a0", "#606060"))
+            self.description_entry.insert("0.0", info["systems"][sysname]["software"][softname]["description"])
+            self.description_entry.configure(state="disabled")
+            self.description_entry.grid(row=3, column=0, sticky="new", padx=10, pady=0)
+
+            self.hardware_label= ctk.CTkLabel(self, text="Hardware:", anchor="w")
+            self.hardware_label.grid(row=4, column=0, sticky="new", padx=10, pady=5)
+
+            self.hardware_checklist= CheckList(self, sorted(info["systems"][sysname]["hardware"].keys()))
+            for item in self.hardware_checklist.items:
+                if softname in info["systems"][sysname]["hardware"][item.cget("text")]["software"]:
+                    item.select()
+                item.configure(state="disabled")
+            self.hardware_checklist.grid(row=5, column=0, sticky="new", padx=10, pady=5)
+
+            self.vulnerabilities_label = ctk.CTkLabel(self, text="Vulnerabilities:", anchor="w")
+            self.vulnerabilities_label.grid(row=6, column=0, sticky="new", padx=10, pady=5)
+
+            self.vulnerabilities_checklist = CheckList(self, sorted(info["systems"][sysname]["software vulnerabilities"].keys()))
+            for item in self.vulnerabilities_checklist.items:
+                if item.cget("text") in info["systems"][sysname]["software"][softname]["vulnerabilities"]:
+                    item.select()
+                item.configure(state="disabled")
+            self.vulnerabilities_checklist.grid(row=7, column=0, sticky="new", padx=10, pady=5)
+
+            self.close = ReturnButton(self, text="Close", command=self.destroy)
+            self.close.grid(row=8, column=0, padx=10, pady=5)
+
+    class EditPopup(ctk.CTkToplevel):
+        def __init__(self, master, info, sysname, softname, refresh, *args, **kwargs):
+            super().__init__(master, *args, **kwargs)
+            self.info = info
+            self.sysname = sysname
+            self.softname = softname
+            self.refresh = refresh
+
+            self.name_label = ctk.CTkLabel(self, text="Name:", anchor="w")
+            self.name_label.grid(row=0, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
+
+            self.name_entry = ctk.CTkEntry(self)
+            self.name_entry.insert(0, softname)
+            self.name_entry.bind("<Return>", lambda event: self.edit())
+            self.name_entry.grid(row=1, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+
+            self.description_label = ctk.CTkLabel(self, text="Description:", anchor="w")
+            self.description_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
+
+            self.description_entry = ctk.CTkTextbox(self, height=150, border_width=2, border_color=("#a0a0a0", "#606060"))
+            self.description_entry.insert("0.0", info["systems"][sysname]["software"][softname]["description"])
+            self.description_entry.grid(row=3, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+
+            self.hardware_label= ctk.CTkLabel(self, text="Hardware:", anchor="w")
+            self.hardware_label.grid(row=4, column=0, sticky="new", padx=10, pady=5)
+
+            self.hardware_checklist= CheckList(self, sorted(info["systems"][sysname]["hardware"].keys()))
+            for item in self.hardware_checklist.items:
+                if softname in info["systems"][sysname]["hardware"][item.cget("text")]["software"]:
+                    item.select()
+            self.hardware_checklist.grid(row=5, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+
+            self.vulnerabilities_label = ctk.CTkLabel(self, text="Vulnerabilities:", anchor="w")
+            self.vulnerabilities_label.grid(row=6, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+
+            self.vulnerabilities_checklist = CheckList(self, sorted(info["systems"][sysname]["software vulnerabilities"].keys()))
+            for item in self.vulnerabilities_checklist.items:
+                if item.cget("text") in info["systems"][sysname]["software"][softname]["vulnerabilities"]:
+                    item.select()
+            self.vulnerabilities_checklist.grid(row=7, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+
+            self.applier = ReturnButton(self, text="Apply", command=self.apply)
+            self.applier.grid(row=8, column=0, sticky="new", padx=(10, 5), pady=5)
+
+            self.cancel = ReturnButton(self, text="Cancel", command=self.destroy)
+            self.cancel.grid(row=8, column=1, sticky="new", padx=(5, 10), pady=5)
+
+            self.warning = ctk.CTkLabel(self, text="", text_color="red")
+            self.warning.grid(row=9, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+
+        def apply(self):
+            if self.name_entry.get() != self.softname:
+                if self.name_entry.get() == "":
+                    self.warning.configure(text="Must have non-empty name")
+                    return
+
+                if self.name_entry.get() in self.info["systems"][self.sysname]["software"].keys():
+                    self.warning.configure(text=f"Software {self.name_entry.get()} already exists")
+                    return
+
+            self.info["systems"][self.sysname]["software"][self.name_entry.get()] = {"description":  self.description_entry.get("0.0", "end"), "vulnerabilities":self.vulnerabilities_checklist.get()}
+            hardware = self.hardware_checklist.get()
+            for hardname in self.info["systems"][self.sysname]["hardware"].keys():
+                if hardname in hardware:
+                    if self.softname in self.info["systems"][self.sysname]["hardware"][hardname]["software"]:
+                        if self.softname != self.name_entry.get():
+                            self.info["systems"][self.sysname]["hardware"][hardname]["software"].remove(self.softname)
+                            self.info["systems"][self.sysname]["hardware"][hardname]["software"].append(self.name_entry.get())
+                    else:
+                        self.info["systems"][self.sysname]["hardware"][hardname]["software"].append(self.name_entry.get())
+                else:
+                    if self.softname in self.info["systems"][self.sysname]["hardware"][hardname]["software"]:
+                        self.info["systems"][self.sysname]["hardware"][hardname]["software"].remove(self.softname)
+
+            if self.name_entry.get() != self.softname:
+                self.info["systems"][self.sysname]["software"].pop(self.softname)
+            self.refresh(self.info["systems"][self.sysname]["software"].keys())
+            self.destroy()
+
+    def delete(self, softname):
+        self.info["systems"][self.sysname]["software"].pop(softname)
+        for hardname in self.info["systems"][self.sysname]["hardware"].keys():
+            if softname in self.info["systems"][self.sysname]["hardware"][hardname]["software"]:
+                self.info["systems"][self.sysname]["hardware"][hardname]["software"].remove(softname)
+
+
+    def __init__(self, master, info, sysname, *args, **kwargs):
+        super().__init__(master, *args, **kwargs)
+        self.grid_columnconfigure(0, weight=1)
+        self.info = info
+        self.sysname = sysname
+
+        self.software_label= ctk.CTkLabel(self, text="System software:", anchor="w")
+        self.software_label.grid(row=0, column=0, sticky="nw", padx=10, pady=5)
+
+        self.software_list = AddEditDeleteFrame(self, self.info["systems"][self.sysname]["software"].keys(),
+                                                lambda refresh: SoftwareFrame.AddPopup(self, info, sysname, refresh),
+                                                lambda softname: SoftwareFrame.DisplayPopup(self, info, sysname, softname),
+                                                lambda softname, refresh: SoftwareFrame.EditPopup(self, info, sysname, softname, refresh),
+                                                lambda softname: self.delete(softname),
+                                                fg_color="transparent")
+        self.software_list.grid(row=1, column=0, sticky="nesw", padx=10, pady=5)
 
 class SystemSettings(ctk.CTkFrame):
     def __init__(self, master, info, sysname, *args, **kwargs):
@@ -453,7 +672,7 @@ class SystemSettings(ctk.CTkFrame):
         self.description_label = ctk.CTkLabel(self, text="Description:", anchor="w")
         self.description_label.grid(row=5, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
 
-        self.description_entry = ctk.CTkTextbox(self, border_width=2, border_color=("#a0a0a0", "#606060"))
+        self.description_entry = ctk.CTkTextbox(self, height=150, border_width=2, border_color=("#a0a0a0", "#606060"))
         self.description_entry.grid(row=6, column=0, columnspan=2, sticky="new", padx=10, pady=0)
 
         self.applier = ReturnButton(self, text="Apply", command=self.edit_system)
@@ -538,6 +757,11 @@ class SystemMenu(ctk.CTkTabview):
         self.tab("Hardware").grid_columnconfigure(0, weight=1)
         self.hardwareFrame = HardwareFrame(self.tab("Hardware"), info, sysname)
         self.hardwareFrame.grid(row=0, column=0, sticky="nesw")
+
+        self.tab("Software").grid_columnconfigure(0, weight=1)
+        self.softwareFrame = SoftwareFrame(self.tab("Software"), info, sysname)
+        self.softwareFrame.grid(row=0, column=0, sticky="nesw")
+
         self.systemSettings = SystemSettings(self.tab("Settings"), info, sysname)
         self.systemSettings.grid(row=0, column=0)
 
@@ -591,7 +815,7 @@ class MainFrame(ctk.CTkFrame):
             self.description_label = ctk.CTkLabel(self, text="Description:", anchor="w")
             self.description_label.grid(row=5, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
 
-            self.description_entry = ctk.CTkTextbox(self, border_width=2, border_color=("#a0a0a0", "#606060"))
+            self.description_entry = ctk.CTkTextbox(self, height=150, border_width=2, border_color=("#a0a0a0", "#606060"))
             self.description_entry.grid(row=6, column=0, columnspan=2, sticky="new", padx=10, pady=0)
 
             self.adder = ReturnButton(self, text="Add", command=self.add_system)
