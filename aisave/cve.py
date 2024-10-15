@@ -59,37 +59,51 @@ def process_cves():
             for folder in os.listdir(os.path.join(base, "data", "cvelistV5-main", "cves", year)):
                 for cve in os.listdir(os.path.join(base, "data", "cvelistV5-main", "cves", year, folder)):
                     with open(os.path.join(base, "data", "cvelistV5-main", "cves", year, folder, cve), 'r') as file:
-                        try:
-                            cve_dict = json.load(file)
-                            if cve_dict["cveMetadata"]["state"] == "PUBLISHED":
-                                cve_name = cve_dict["cveMetadata"]["cveId"]
-                                cna = cve_dict["containers"]["cna"]
-                                description = "n/a"
-                                for desc in cna["descriptions"]:
-                                    if desc["lang"] == "en":
-                                        description = desc["value"]
-                                score = 0.0
-                                score_count = 0
-                                if "metrics" in cna.keys():
-                                    for metrics in cna["metrics"]:
-                                        for metric in metrics.keys():
-                                            if "baseScore" in metrics[metric]:
-                                                score += metrics[metric]["baseScore"]
-                                                score_count += 1
-                                if score_count > 0:
-                                    score /= score_count
-                                else:
-                                    score = -1.0
-                                cursor.execute('''INSERT INTO cve_data (cve_name, description, score) VALUES (?, ?, ?)''', (cve_name, description, score))
-                        except Exception as e:
-                            print(os.path.join(base, "data", "cvelistV5-main", "cves", year, folder, cve), e)
+                        cve_dict = json.load(file)
+                        if cve_dict["cveMetadata"]["state"] == "PUBLISHED":
+                            cve_name = cve_dict["cveMetadata"]["cveId"]
+                            cna = cve_dict["containers"]["cna"]
+                            description = "n/a"
+                            for desc in cna["descriptions"]:
+                                if desc["lang"] == "en":
+                                    description = desc["value"]
+                            if description == "n/a":
+                                continue
+                            score = 0.0
+                            score_count = 0
+                            if "metrics" in cna.keys():
+                                for metrics in cna["metrics"]:
+                                    for metric in metrics.keys():
+                                        if "baseScore" in metrics[metric]:
+                                            score += metrics[metric]["baseScore"]
+                                            score_count += 1
+                            affect_list = []
+                            for affected in cna["affected"]:
+                                if "product" not in affected.keys():
+                                    continue
+                                if affected["product"] != "n/a":
+                                    version_list = []
+                                    if "versions" not in affected.keys():
+                                        continue
+                                    for version in affected["versions"]:
+                                        if version["status"] != "affected":
+                                            continue
+                                        if "lessThanOrEqual" in version.keys():
+                                            version_list.append(f"less than or equal to {version['lessThanOrEqual']}")
+                                        elif "lessThan" in version.keys():
+                                            version_list.append(f"less than {version['lessThan']}")
+                                        elif version["version"] != "n/a" and version["version"] != "unspecified":
+                                            version_list.append(version['version'])
+                                    if len(version_list) > 0:
+                                        affect_list.append(f"{affected['product']} version(s), {', '.join(version_list)}")
+                            if len(affect_list) > 0:
+                                description += f"\nAffected: {'; '.join(affect_list)}"
+                            if score_count > 0:
+                                score /= score_count
+                            cursor.execute('''INSERT INTO cve_data (cve_name, description, score) VALUES (?, ?, ?)''', (cve_name, description, score))
     conn.commit()
     cursor.close()
     conn.close()
 
 if __name__ == "__main__":
-    cves = search_cves("Red hat enterprise linux 7.1")
-    sort = sorted(cves.keys(), key=lambda k: cves[k], reverse=True)
-    for i in range(5):
-        print(sort[i])
-
+    process_cves()
