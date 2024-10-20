@@ -2,6 +2,7 @@ LICENSE
 README.md
 pyproject.toml
 aisave/__init__.py
+aisave/classic_analysis.py
 aisave/crypto.py
 aisave/cve.py
 aisave/gui.py

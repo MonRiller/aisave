@@ -3,6 +3,7 @@ import customtkinter as ctk
 from aisave import base
 from aisave.crypto import load_info, save_info
 from aisave.cve import update_cves, search_cves
+from aisave.classic_analysis import sys_score
 from PIL import Image
 
 
@@ -276,6 +277,7 @@ class ComponentFrame(ctk.CTkFrame):
     class AddPopup(ctk.CTkToplevel):
         def __init__(self, master, info, sysname, refresh, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
+            self.grid_columnconfigure((0, 1), weight=1)
             self.info = info
             self.sysname = sysname
             self.refresh = refresh
@@ -291,7 +293,7 @@ class ComponentFrame(ctk.CTkFrame):
             self.description_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
 
             self.description_entry = ctk.CTkTextbox(self, height=150, border_width=2, fg_color=self.name_entry.cget("fg_color"), border_color=("#a0a0a0", "#606060"))
-            self.description_entry.grid(row=3, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+            self.description_entry.grid(row=3, column=0, columnspan=2, sticky="nesw", padx=10, pady=0)
 
             self.dependency_label = ctk.CTkLabel(self, text="Direct dependencies:", anchor="w")
             self.dependency_label.grid(row=4, column=0, columnspan=2, sticky="new", padx=10, pady=5)
@@ -330,6 +332,7 @@ class ComponentFrame(ctk.CTkFrame):
     class DisplayPopup(ctk.CTkToplevel):
         def __init__(self, master, info, sysname, name, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
+            self.grid_columnconfigure(0, weight=1)
             self.info = info
             self.sysname = sysname
             self.name = name
@@ -348,7 +351,7 @@ class ComponentFrame(ctk.CTkFrame):
             self.description_entry = ctk.CTkTextbox(self, height=150, border_width=2, fg_color=self.name_entry.cget("fg_color"), border_color=("#a0a0a0", "#606060"))
             self.description_entry.insert("0.0", info["systems"][sysname]["components"][name]["description"])
             self.description_entry.configure(state="disabled")
-            self.description_entry.grid(row=3, column=0, sticky="new", padx=10, pady=0)
+            self.description_entry.grid(row=3, column=0, sticky="nesw", padx=10, pady=0)
 
             self.dependency_label = ctk.CTkLabel(self, text="Direct dependencies:", anchor="w")
             self.dependency_label.grid(row=4, column=0, sticky="new", padx=10, pady=5)
@@ -367,6 +370,7 @@ class ComponentFrame(ctk.CTkFrame):
     class EditPopup(ctk.CTkToplevel):
         def __init__(self, master, info, sysname, name, refresh, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
+            self.grid_columnconfigure((0, 1), weight=1)
             self.info = info
             self.sysname = sysname
             self.name = name
@@ -378,14 +382,14 @@ class ComponentFrame(ctk.CTkFrame):
             self.name_entry = ctk.CTkEntry(self)
             self.name_entry.insert(0, name)
             self.name_entry.bind("<Return>", lambda event: self.edit())
-            self.name_entry.grid(row=1, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+            self.name_entry.grid(row=1, column=0, columnspan=2, sticky="nesw", padx=10, pady=0)
 
             self.description_label = ctk.CTkLabel(self, text="Description:", anchor="w")
             self.description_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
 
             self.description_entry = ctk.CTkTextbox(self, height=150, border_width=2, fg_color=self.name_entry.cget("fg_color"), border_color=("#a0a0a0", "#606060"))
             self.description_entry.insert("0.0", info["systems"][sysname]["components"][name]["description"])
-            self.description_entry.grid(row=3, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+            self.description_entry.grid(row=3, column=0, columnspan=2, sticky="nesw", padx=10, pady=0)
 
             self.dependency_label = ctk.CTkLabel(self, text="Direct dependencies:", anchor="w")
             self.dependency_label.grid(row=4, column=0, columnspan=2, sticky="new", padx=10, pady=5)
@@ -406,23 +410,6 @@ class ComponentFrame(ctk.CTkFrame):
             self.warning = ctk.CTkLabel(self, text="", text_color="red")
             self.warning.grid(row=7, column=0, columnspan=2, sticky="new", padx=10, pady=5)
 
-
-        def check_cycles(self):
-            seen = {}
-            queue = [(dep, [self.name_entry.get(), dep]) for dep in self.dependency_checklist.get()]
-            for dep, path in queue:
-                seen[dep] = path
-
-            while len(queue) != 0:
-                if self.name in seen:
-                    return seen[self.name]
-                cur, path = queue.pop(0)
-                for dependency in self.info["systems"][self.sysname]["components"][cur]["dependencies"]:
-                    if dependency not in seen:
-                        seen[dependency] = path + [dependency]
-                        queue.append((dependency, path + [dependency]))
-            return None
-
         def apply(self):
             if self.name_entry.get() != self.name:
                 if self.name_entry.get() == "":
@@ -432,11 +419,6 @@ class ComponentFrame(ctk.CTkFrame):
                 if self.name_entry.get() in self.info["systems"][self.sysname]["components"].keys():
                     self.warning.configure(text=f"Component {self.name_entry.get()} already exists")
                     return
-
-            cycle = self.check_cycles()
-            if cycle != None:
-                self.warning.configure(text=f"Editing component would introduce cycle:\n{' -> '.join(cycle)}")
-                return
 
             self.info["systems"][self.sysname]["components"][self.name_entry.get()] = {"description": self.description_entry.get("0.0", "end"), "dependencies":self.dependency_checklist.get()}
 
@@ -502,6 +484,7 @@ class VulnerabilityFrame(ctk.CTkFrame):
         class AddFrame(ctk.CTkFrame):
             def __init__(self, master, info, sysname, refresh, *args, **kwargs):
                 super().__init__(master, *args, **kwargs)
+                self.grid_columnconfigure((0, 1), weight=1)
                 self.info = info
                 self.sysname = sysname
                 self.refresh = refresh
@@ -517,7 +500,7 @@ class VulnerabilityFrame(ctk.CTkFrame):
                 self.description_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=10, pady=(10,0))
 
                 self.description_entry = ctk.CTkTextbox(self, height=150, border_width=2, fg_color=self.name_entry.cget("fg_color"), border_color=("#a0a0a0", "#606060"))
-                self.description_entry.grid(row=3, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+                self.description_entry.grid(row=3, column=0, columnspan=2, sticky="nesw", padx=10, pady=0)
 
                 self.component_label = ctk.CTkLabel(self, text="Components:", anchor="w")
                 self.component_label.grid(row=4, column=0, columnspan=2, sticky="new", padx=10, pady=5)
@@ -637,6 +620,7 @@ class VulnerabilityFrame(ctk.CTkFrame):
     class DisplayPopup(ctk.CTkToplevel):
         def __init__(self, master, info, sysname, name, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
+            self.grid_columnconfigure(0, weight=1)
             self.info = info
             self.sysname = sysname
             self.name = name
@@ -655,7 +639,7 @@ class VulnerabilityFrame(ctk.CTkFrame):
             self.description_entry = ctk.CTkTextbox(self, height=150, border_width=2, fg_color=self.name_entry.cget("fg_color"), border_color=("#a0a0a0", "#606060"))
             self.description_entry.insert("0.0", info["systems"][sysname]["vulnerabilities"][name]["description"])
             self.description_entry.configure(state="disabled")
-            self.description_entry.grid(row=3, column=0, sticky="new", padx=10, pady=0)
+            self.description_entry.grid(row=3, column=0, sticky="nesw", padx=10, pady=0)
 
             self.component_label = ctk.CTkLabel(self, text="Components:", anchor="w")
             self.component_label.grid(row=4, column=0, sticky="new", padx=10, pady=5)
@@ -684,6 +668,7 @@ class VulnerabilityFrame(ctk.CTkFrame):
     class EditPopup(ctk.CTkToplevel):
         def __init__(self, master, info, sysname, name, refresh, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
+            self.grid_columnconfigure((0, 1), weight=1)
             self.info = info
             self.sysname = sysname
             self.name = name
@@ -702,7 +687,7 @@ class VulnerabilityFrame(ctk.CTkFrame):
 
             self.description_entry = ctk.CTkTextbox(self, height=150, border_width=2, fg_color=self.name_entry.cget("fg_color"), border_color=("#a0a0a0", "#606060"))
             self.description_entry.insert("0.0", info["systems"][sysname]["vulnerabilities"][name]["description"])
-            self.description_entry.grid(row=3, column=0, columnspan=2, sticky="new", padx=10, pady=0)
+            self.description_entry.grid(row=3, column=0, columnspan=2, sticky="nesw", padx=10, pady=0)
 
             self.component_label = ctk.CTkLabel(self, text="Components:", anchor="w")
             self.component_label.grid(row=4, column=0, columnspan=2, sticky="new", padx=10, pady=5)
@@ -1060,6 +1045,80 @@ class SystemSettings(ctk.CTkFrame):
             self.info["systems"].pop(self.sysname)
         app.show_page(SystemPage(app, self.info, self.name_entry.get()))
 
+class AnalysisFrame(ctk.CTkScrollableFrame):
+    class OrderedFrame(ctk.CTkScrollableFrame):
+        def __init__(self, master, label, *args, **kwargs):
+            super().__init__(master, *args, **kwargs)
+            self.grid_columnconfigure((0, 1), weight=1)
+            self.label = label
+
+            self.empty = ctk.CTkLabel(self, text="No vulnerabilities to show")
+            self.empty.grid(row=0, column=0, columnspan=2, padx=10, pady=5, sticky="new")
+
+            self.items = []
+            self.significances = []
+
+        def refresh(self, dictionary):
+            for item in self.items:
+                item.destroy()
+
+            for significance in self.significances:
+                significance.destroy()
+
+            if len(dictionary.keys()) == 0:
+                self.empty.grid()
+                return
+
+            self.empty.grid_remove()
+            ordered_keys = sorted(dictionary.keys(), key=lambda k: dictionary[k], reverse=True)
+            for i, key in enumerate(ordered_keys):
+                item = ctk.CTkLabel(self, text=key, anchor="w")
+                item.grid(row=i + 1, column=0, padx=10, pady=5, sticky="new")
+                self.items.append(item)
+                significance = ctk.CTkLabel(self, text=f"{self.label}: {dictionary[key]:.1f}", anchor="w")
+                significance.grid(row=i + 1, column=1, padx=10, pady=5, sticky="new")
+                self.significances.append(significance)
+
+    def __init__(self, master, *args, **kwargs):
+        super().__init__(master, *args, **kwargs)
+        self.grid_columnconfigure(0, weight=1)
+        self.configure(height=400)
+
+        self.score = ctk.CTkLabel(self, text="Security score: 0.0%", font=("Roboto", 24))
+        self.score.grid(row=0, column=0, sticky="new", padx=20, pady=10)
+
+        self.vulns_label = ctk.CTkLabel(self, text="Vulnerabilities ranked by significance", font=("Roboto", 20))
+        self.vulns_label.grid(row=1, column=0, sticky="new", padx=10, pady=5)
+
+        self.vulns = AnalysisFrame.OrderedFrame(self, "Significance")
+        self.vulns.grid(row=2, column=0, sticky="new", padx=10, pady=5)
+
+        self.components_label = ctk.CTkLabel(self, text="Components ranked by vulnerability", font=("Roboto", 20))
+        self.components_label.grid(row=3, column=0, sticky="new", padx=10, pady=5)
+
+        self.components = AnalysisFrame.OrderedFrame(self, "Component vulnerability")
+        self.components.grid(row=4, column=0, sticky="new", padx=10, pady=5)
+
+        self.functionalities_label = ctk.CTkLabel(self, text="Functionalities ranked by vulnerability", font=("Roboto", 20))
+        self.functionalities_label.grid(row=5, column=0, sticky="new", padx=10, pady=5)
+
+        self.functionalities = AnalysisFrame.OrderedFrame(self, "Functionality vulnerability")
+        self.functionalities.grid(row=6, column=0, sticky="new", padx=10, pady=5)
+
+    def refresh(self, sysinfo):
+        score, component_scores, functionality_scores = sys_score(sysinfo)
+        self.score.configure(text=f"Security score: {score * 100:.1f}%")
+
+        vulnerability_significance = {}
+        vulnerabilities = list(sysinfo["vulnerabilities"].keys())
+        for vulnerability in vulnerabilities:
+            vuln_obj = sysinfo["vulnerabilities"].pop(vulnerability)
+            tmp_score, _, _ = sys_score(sysinfo)
+            vulnerability_significance[vulnerability] = (tmp_score - score) * 100
+            sysinfo["vulnerabilities"][vulnerability] = vuln_obj
+        self.vulns.refresh(vulnerability_significance)
+        self.components.refresh(component_scores)
+        self.functionalities.refresh(functionality_scores)
 
 class SystemMenu(ctk.CTkTabview):
     def __init__(self, master, info, sysname, *args, **kwargs):
@@ -1082,8 +1141,12 @@ class SystemMenu(ctk.CTkTabview):
         self.functionalityFrame= FunctionalityFrame(self.tab("Functionalities"), info, sysname)
         self.functionalityFrame.grid(row=0, column=0, sticky="nesw")
 
+        self.analysisFrame = AnalysisFrame(self.tab("Analysis"))
+        self.analysisFrame.grid(row=0, column=0, sticky="nesw")
+        self.configure(command=lambda: self.analysisFrame.refresh(self.info["systems"][self.sysname]))
+
         self.systemSettings = SystemSettings(self.tab("Settings"), info, sysname)
-        self.systemSettings.grid(row=0, column=0)
+        self.systemSettings.grid(row=0, column=0, )
 
 class SystemPage(ctk.CTkFrame):
     def __init__(self, master, info, sysname, *args, **kwargs):
