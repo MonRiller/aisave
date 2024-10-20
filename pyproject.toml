@@ -14,6 +14,9 @@ version = "0.1"
 dependencies = [
     "customtkinter",
     "pycryptodome",
+    "requests",
+    "Pillow",
+    "openai",
 ]
 requires-python = ">= 3.8"
 

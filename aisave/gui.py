@@ -4,6 +4,7 @@ from aisave import base
 from aisave.crypto import load_info, save_info
 from aisave.cve import update_cves, search_cves
 from aisave.classic_analysis import sys_score
+from aisave.openaichat import Chat
 from PIL import Image
 
 
@@ -88,6 +89,17 @@ class ReturnButton(ctk.CTkButton):
             self.bind("<Return>", lambda event: self.cget("command")())
             self.bind("<FocusIn>", lambda event: self.configure(fg_color=self.cget("hover_color")))
             self.bind("<FocusOut>", lambda event: self.configure(fg_color=self.fg_hold))
+
+class FixedTextbox(ctk.CTkTextbox):
+    def __init__(self, master, *args, **kwargs):
+        super().__init__(master, *args, **kwargs)
+        self.adjust_textbox_height()
+        self.bind("<<Modified>>", self.adjust_textbox_height)
+
+    def adjust_textbox_height(self, event=None):
+        text = self.get("0.0", "end")
+        num_lines = len(text) // (self.cget("width") // 4) + text.count("\n") + 1
+        self.configure(height=int(num_lines)*18)
 
 class SettingsPopup(ctk.CTkToplevel):
     def __init__(self, master, *args, **kwargs):
@@ -1084,30 +1096,43 @@ class AnalysisFrame(ctk.CTkScrollableFrame):
         self.grid_columnconfigure(0, weight=1)
         self.configure(height=400)
 
-        self.score = ctk.CTkLabel(self, text="Security score: 0.0%", font=("Roboto", 24))
+        self.score = ctk.CTkLabel(self, text="Deterministic security score: 0.0%", font=("Roboto", 24))
         self.score.grid(row=0, column=0, sticky="new", padx=20, pady=10)
 
+        self.ai_score = ctk.CTkLabel(self, text="AI security score: 0.0%", font=("Roboto", 24))
+        self.ai_score.grid(row=1, column=0, sticky="new", padx=20, pady=(10, 5))
+
+        self.warning = ctk.CTkLabel(self, text="", text_color="red")
+        self.warning.grid(row=2, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+
         self.vulns_label = ctk.CTkLabel(self, text="Vulnerabilities ranked by significance", font=("Roboto", 20))
-        self.vulns_label.grid(row=1, column=0, sticky="new", padx=10, pady=5)
+        self.vulns_label.grid(row=3, column=0, sticky="new", padx=10, pady=5)
 
         self.vulns = AnalysisFrame.OrderedFrame(self, "Significance")
-        self.vulns.grid(row=2, column=0, sticky="new", padx=10, pady=5)
+        self.vulns.grid(row=4, column=0, sticky="new", padx=10, pady=5)
 
         self.components_label = ctk.CTkLabel(self, text="Components ranked by vulnerability", font=("Roboto", 20))
-        self.components_label.grid(row=3, column=0, sticky="new", padx=10, pady=5)
+        self.components_label.grid(row=5, column=0, sticky="new", padx=10, pady=5)
 
         self.components = AnalysisFrame.OrderedFrame(self, "Component vulnerability")
-        self.components.grid(row=4, column=0, sticky="new", padx=10, pady=5)
+        self.components.grid(row=6, column=0, sticky="new", padx=10, pady=5)
 
         self.functionalities_label = ctk.CTkLabel(self, text="Functionalities ranked by vulnerability", font=("Roboto", 20))
-        self.functionalities_label.grid(row=5, column=0, sticky="new", padx=10, pady=5)
+        self.functionalities_label.grid(row=7, column=0, sticky="new", padx=10, pady=5)
 
         self.functionalities = AnalysisFrame.OrderedFrame(self, "Functionality vulnerability")
-        self.functionalities.grid(row=6, column=0, sticky="new", padx=10, pady=5)
+        self.functionalities.grid(row=8, column=0, sticky="new", padx=10, pady=5)
 
     def refresh(self, sysinfo):
         score, component_scores, functionality_scores = sys_score(sysinfo)
-        self.score.configure(text=f"Security score: {score * 100:.1f}%")
+        self.score.configure(text=f"Deterministic security score: {score * 100:.1f}%")
+
+        try:
+            aiscore = Chat(sysinfo, score * 100).score()
+            self.ai_score.configure(text=f"AI security score: {aiscore:.1f}%")
+            self.warning.configure(text="")
+        except:
+            self.warning.configure(text="Invalid API key or OpenAI API is down")
 
         vulnerability_significance = {}
         vulnerabilities = list(sysinfo["vulnerabilities"].keys())
@@ -1119,6 +1144,65 @@ class AnalysisFrame(ctk.CTkScrollableFrame):
         self.vulns.refresh(vulnerability_significance)
         self.components.refresh(component_scores)
         self.functionalities.refresh(functionality_scores)
+
+class ChatFrame(ctk.CTkFrame):
+    class ChatWindow(ctk.CTkScrollableFrame):
+        def __init__(self, master, chat, *args, **kwargs):
+            super().__init__(master, *args, **kwargs)
+            self.grid_columnconfigure((0, 1, 2), weight=1)
+            self.chat = chat
+            self.items = []
+            self.refresh()
+
+        def refresh(self):
+            for item in self.items:
+                item.destroy()
+            self.items=[]
+            for i, message in enumerate(self.chat.messages):
+                if message["role"] == "user":
+                    item = FixedTextbox(self)
+                    item.insert("0.0", message["content"])
+                    item.configure(state="disabled")
+                    item.grid(row=i, column=1, columnspan=2, padx=10, pady=5, sticky="new")
+                    self.items.append(item)
+                elif message["role"] == "assistant":
+                    item = FixedTextbox(self)
+                    item.insert("0.0", message["content"])
+                    item.configure(state="disabled")
+                    item.grid(row=i, column=0, columnspan=2, padx=10, pady=5, sticky="new")
+                    self.items.append(item)
+
+    def __init__(self, master, sysinfo, *args, **kwargs):
+        super().__init__(master, *args, **kwargs)
+        self.grid_columnconfigure(0, weight=1)
+        self.sysinfo = sysinfo
+
+        score, component_scores, functionality_scores = sys_score(sysinfo)
+        self.chat = Chat(sysinfo, score, store=True)
+
+        self.chat_window = ChatFrame.ChatWindow(self, self.chat)
+        self.chat_window.grid(row=0, column=0, padx=10, pady=5, sticky="nesw")
+
+        self.chat_entry = ctk.CTkEntry(self)
+        self.chat_entry.bind("<Return>", lambda event: self.message())
+        self.chat_entry.grid(row=1, column=0, padx=10, pady=5, sticky="new")
+
+        self.new_chat_button = ReturnButton(self, text="New chat", fg_color="#ff0000", hover_color="#bb0000", command=lambda event=None: self.new_chat())
+        self.new_chat_button.grid(row=2, column=0, padx=10, pady=5, sticky="n")
+
+    def message(self):
+        self.chat.chat(self.chat_entry.get())
+        self.chat_entry.delete(0, len(self.chat_entry.get()))
+        self.chat_window.refresh()
+
+    def new_chat(self):
+        if "chat" in self.sysinfo.keys():
+            self.sysinfo.pop("chat")
+        score, component_scores, functionality_scores = sys_score(self.sysinfo)
+        self.chat = Chat(self.sysinfo, score, store=True)
+        self.chat_window.destroy()
+        self.chat_window = ChatFrame.ChatWindow(self, self.chat)
+        self.chat_window.grid(row=0, column=0, padx=10, pady=5, sticky="nesw")
 
 class SystemMenu(ctk.CTkTabview):
     def __init__(self, master, info, sysname, *args, **kwargs):
@@ -1145,6 +1229,9 @@ class SystemMenu(ctk.CTkTabview):
         self.analysisFrame.grid(row=0, column=0, sticky="nesw")
         self.configure(command=lambda: self.analysisFrame.refresh(self.info["systems"][self.sysname]))
 
+        self.chatFrame = ChatFrame(self.tab("AI Chat"), info["systems"][sysname])
+        self.chatFrame.grid(row=0, column=0, sticky="nesw")
+
         self.systemSettings = SystemSettings(self.tab("Settings"), info, sysname)
         self.systemSettings.grid(row=0, column=0, )
 
@@ -1157,7 +1244,7 @@ class SystemPage(ctk.CTkFrame):
         self.name_label = ctk.CTkLabel(self, text=sysname, font=("Roboto", 24))
         self.name_label.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
 
-        self.description = ctk.CTkTextbox(self, fg_color="transparent",  height=80)
+        self.description = FixedTextbox(self, fg_color="transparent",  height=80)
         self.description.insert("0.0", text=self.info["systems"][sysname]["description"])
         self.description.configure(state="disabled")
         self.description.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
@@ -1219,7 +1306,7 @@ class MainFrame(ctk.CTkFrame):
                 self.warning.configure(text=f"System {self.name_entry.get()} already exists")
                 return
 
-            self.info["systems"][self.name_entry.get()] = {"description":  self.description_entry.get("0.0", "end"), "api-key": self.api_entry.get(), "components":{}, "vulnerabilities":{}, "functionalities":{}, "chats":{}}
+            self.info["systems"][self.name_entry.get()] = {"description":  self.description_entry.get("0.0", "end"), "api-key": self.api_entry.get(), "components":{}, "vulnerabilities":{}, "functionalities":{}}
             app.show_page(SystemPage(app, self.info, self.name_entry.get()))
 
 

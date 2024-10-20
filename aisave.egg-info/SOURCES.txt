@@ -6,6 +6,7 @@ aisave/classic_analysis.py
 aisave/crypto.py
 aisave/cve.py
 aisave/gui.py
+aisave/openaichat.py
 aisave.egg-info/PKG-INFO
 aisave.egg-info/SOURCES.txt
 aisave.egg-info/dependency_links.txt

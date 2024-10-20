@@ -10,6 +10,9 @@ Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: customtkinter
 Requires-Dist: pycryptodome
+Requires-Dist: requests
+Requires-Dist: Pillow
+Requires-Dist: openai
 
 # Artificial Intelligence System Analysis of Vulnerabilities and Exploits
 ## (AISAVE)

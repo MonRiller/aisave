@@ -1,2 +1,5 @@
 customtkinter
 pycryptodome
+requests
+Pillow
+openai
