@@ -24,12 +24,15 @@ def sys_score(sys_info):
     for functionality in sys_info["functionalities"].keys():
         functionality_scores[functionality] = sum([score / (i + 1) for i, score in enumerate(sorted([component_raw_scores[dependency] for dependency in functionality_dependencies[functionality]], reverse=True))])
 
-    func_coef = (sum([sys_info["functionalities"][functionality]["score"] for functionality in sys_info["functionalities"].keys()]) + 1) ** -0.5
+    try:
+        func_coef = 1 / (sum([sys_info["functionalities"][functionality]["score"] for functionality in sys_info["functionalities"].keys()]))
+    except:
+        func_coef = 1
     functionality_adjusted = {}
     for functionality in sys_info["functionalities"].keys():
         functionality_adjusted[functionality] = functionality_scores[functionality] * sys_info["functionalities"][functionality]["score"] * func_coef
 
-    total_score = 0.99 ** (sum([score / (i + 1) for i, score in enumerate(sorted(functionality_adjusted.values(), reverse=True))]))
+    total_score = 0.95 ** (sum(functionality_adjusted.values()))
     return total_score, component_raw_scores, functionality_scores
 
 def fill_dependencies(dependency_dict, component_dict, component):
