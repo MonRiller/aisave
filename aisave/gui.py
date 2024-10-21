@@ -98,8 +98,8 @@ class FixedTextbox(ctk.CTkTextbox):
 
     def adjust_textbox_height(self, event=None):
         text = self.get("0.0", "end")
-        num_lines = len(text) // (self.cget("width") // 4) + text.count("\n") + 1
-        self.configure(height=int(num_lines)*18)
+        num_lines = len(text) // (self.cget("width") // 4) + text.count("\n") + 2
+        self.configure(height=int(num_lines)*14)
 
 class SettingsPopup(ctk.CTkToplevel):
     def __init__(self, master, *args, **kwargs):
