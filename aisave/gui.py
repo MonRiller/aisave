@@ -1244,7 +1244,7 @@ class SystemPage(ctk.CTkFrame):
         self.name_label = ctk.CTkLabel(self, text=sysname, font=("Roboto", 24))
         self.name_label.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
 
-        self.description = FixedTextbox(self, fg_color="transparent",  height=80)
+        self.description = ctk.CTkTextbox(self, fg_color="transparent",  height=80)
         self.description.insert("0.0", text=self.info["systems"][sysname]["description"])
         self.description.configure(state="disabled")
         self.description.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
