@@ -17,7 +17,8 @@ class App(ctk.CTk):
         super().__init__()
         self.title("AISAVE")
         self.geometry("1400x800")
-        self.grid_columnconfigure((0, 1, 2), weight=1)
+        self.grid_columnconfigure((0, 2), weight=1)
+        self.grid_columnconfigure(1, weight=4)
         self.bind("<Control-d>", lambda event: self.destroy())
 
         self.settings = json.loads(open(os.path.join(base, "data", "settings.json"), 'r').read())
@@ -253,6 +254,8 @@ class AddEditDeleteFrame(ctk.CTkScrollableFrame):
 class CheckList(ctk.CTkScrollableFrame):
     def __init__(self, master, options, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
 
         self.search_entry = ctk.CTkEntry(self, placeholder_text="search")
         self.search_entry.bind("<KeyRelease>", lambda event: self.search(self.search_entry.get()))
@@ -290,6 +293,7 @@ class ComponentFrame(ctk.CTkFrame):
         def __init__(self, master, info, sysname, refresh, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
             self.grid_columnconfigure((0, 1), weight=1)
+            self.grid_rowconfigure((3, 5), weight=1)
             self.info = info
             self.sysname = sysname
             self.refresh = refresh
@@ -345,6 +349,7 @@ class ComponentFrame(ctk.CTkFrame):
         def __init__(self, master, info, sysname, name, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
             self.grid_columnconfigure(0, weight=1)
+            self.grid_rowconfigure((3, 5), weight=1)
             self.info = info
             self.sysname = sysname
             self.name = name
@@ -383,6 +388,7 @@ class ComponentFrame(ctk.CTkFrame):
         def __init__(self, master, info, sysname, name, refresh, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
             self.grid_columnconfigure((0, 1), weight=1)
+            self.grid_rowconfigure((3, 5), weight=1)
             self.info = info
             self.sysname = sysname
             self.name = name
@@ -497,6 +503,7 @@ class VulnerabilityFrame(ctk.CTkFrame):
             def __init__(self, master, info, sysname, refresh, *args, **kwargs):
                 super().__init__(master, *args, **kwargs)
                 self.grid_columnconfigure((0, 1), weight=1)
+                self.grid_rowconfigure((3, 5), weight=1)
                 self.info = info
                 self.sysname = sysname
                 self.refresh = refresh
@@ -622,6 +629,7 @@ class VulnerabilityFrame(ctk.CTkFrame):
         def __init__(self, master, info, sysname, refresh, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
             self.grid_columnconfigure((0, 1), weight=1)
+            self.grid_rowconfigure(0, weight=1)
 
             self.addFrame = VulnerabilityFrame.AddPopup.AddFrame(self, info, sysname, refresh)
             self.addFrame.grid(row=0, column=1, sticky="nesw", padx=10, pady=10)
@@ -633,6 +641,7 @@ class VulnerabilityFrame(ctk.CTkFrame):
         def __init__(self, master, info, sysname, name, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
             self.grid_columnconfigure(0, weight=1)
+            self.grid_rowconfigure((3, 5), weight=1)
             self.info = info
             self.sysname = sysname
             self.name = name
@@ -681,6 +690,7 @@ class VulnerabilityFrame(ctk.CTkFrame):
         def __init__(self, master, info, sysname, name, refresh, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
             self.grid_columnconfigure((0, 1), weight=1)
+            self.grid_rowconfigure((3, 5), weight=1)
             self.info = info
             self.sysname = sysname
             self.name = name
@@ -771,6 +781,8 @@ class FunctionalityFrame(ctk.CTkFrame):
     class AddPopup(ctk.CTkToplevel):
         def __init__(self, master, info, sysname, refresh, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
+            self.grid_columnconfigure((0, 1), weight=1)
+            self.grid_rowconfigure((3, 5), weight=1)
             self.info = info
             self.sysname = sysname
             self.refresh = refresh
@@ -837,6 +849,8 @@ class FunctionalityFrame(ctk.CTkFrame):
     class DisplayPopup(ctk.CTkToplevel):
         def __init__(self, master, info, sysname, name, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
+            self.grid_columnconfigure(0, weight=1)
+            self.grid_rowconfigure((3, 5), weight=1)
             self.info = info
             self.sysname = sysname
             self.name = name
@@ -884,6 +898,8 @@ class FunctionalityFrame(ctk.CTkFrame):
     class EditPopup(ctk.CTkToplevel):
         def __init__(self, master, info, sysname, name, refresh, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
+            self.grid_columnconfigure((0, 1), weight=1)
+            self.grid_rowconfigure((3, 5), weight=1)
             self.info = info
             self.sysname = sysname
             self.name = name
@@ -956,6 +972,7 @@ class FunctionalityFrame(ctk.CTkFrame):
     def __init__(self, master, info, sysname, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
         self.info = info
         self.sysname = sysname
 
@@ -1093,17 +1110,17 @@ class AnalysisFrame(ctk.CTkScrollableFrame):
 
     def __init__(self, master, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
-        self.grid_columnconfigure(0, weight=1)
-        self.configure(height=400)
+        self.grid_columnconfigure((0, 1, 2), weight=1)
+        self.configure(height=500, width=1200)
 
         self.score = ctk.CTkLabel(self, text="Deterministic security score: 0.0%", font=("Roboto", 24))
-        self.score.grid(row=0, column=0, sticky="new", padx=20, pady=10)
+        self.score.grid(row=0, column=1, sticky="new", padx=20, pady=10)
 
         self.ai_score = ctk.CTkLabel(self, text="AI security score: 0.0%", font=("Roboto", 24))
-        self.ai_score.grid(row=1, column=0, sticky="new", padx=20, pady=(10, 5))
+        self.ai_score.grid(row=1, column=1, sticky="new", padx=20, pady=(10, 5))
 
         self.warning = ctk.CTkLabel(self, text="", text_color="red")
-        self.warning.grid(row=2, column=0, columnspan=2, sticky="new", padx=10, pady=5)
+        self.warning.grid(row=2, column=1, sticky="new", padx=10, pady=5)
 
         self.vulns_label = ctk.CTkLabel(self, text="Vulnerabilities ranked by significance", font=("Roboto", 20))
         self.vulns_label.grid(row=3, column=0, sticky="new", padx=10, pady=5)
@@ -1111,17 +1128,19 @@ class AnalysisFrame(ctk.CTkScrollableFrame):
         self.vulns = AnalysisFrame.OrderedFrame(self, "Significance")
         self.vulns.grid(row=4, column=0, sticky="new", padx=10, pady=5)
 
-        self.components_label = ctk.CTkLabel(self, text="Components ranked by vulnerability", font=("Roboto", 20))
-        self.components_label.grid(row=5, column=0, sticky="new", padx=10, pady=5)
+        self.components_label = ctk.CTkLabel(self, text="Components ranked by risk", font=("Roboto", 20))
+        self.components_label.grid(row=3, column=1, sticky="new", padx=10, pady=5)
 
-        self.components = AnalysisFrame.OrderedFrame(self, "Component vulnerability")
-        self.components.grid(row=6, column=0, sticky="new", padx=10, pady=5)
+        self.components = AnalysisFrame.OrderedFrame(self, "Risk")
+        self.components.grid(row=4, column=1, sticky="new", padx=10, pady=5)
 
-        self.functionalities_label = ctk.CTkLabel(self, text="Functionalities ranked by vulnerability", font=("Roboto", 20))
-        self.functionalities_label.grid(row=7, column=0, sticky="new", padx=10, pady=5)
+        self.functionalities_label = ctk.CTkLabel(self, text="Functionalities ranked by risk", font=("Roboto", 20))
+        self.functionalities_label.grid(row=3, column=2, sticky="new", padx=10, pady=5)
 
-        self.functionalities = AnalysisFrame.OrderedFrame(self, "Functionality vulnerability")
-        self.functionalities.grid(row=8, column=0, sticky="new", padx=10, pady=5)
+        self.functionalities = AnalysisFrame.OrderedFrame(self, "Risk")
+        self.functionalities.grid(row=4, column=2, sticky="new", padx=10, pady=5)
+
+        self.chat = ctk.CTkFrame(self)
 
     def refresh(self, sysinfo):
         score, component_scores, functionality_scores = sys_score(sysinfo)
@@ -1131,9 +1150,11 @@ class AnalysisFrame(ctk.CTkScrollableFrame):
             aiscore = Chat(sysinfo, score * 100).score()
             self.ai_score.configure(text=f"AI security score: {aiscore:.1f}%")
             self.warning.configure(text="")
-        except:
+        except Exception as e:
+            print(e)
             self.warning.configure(text="Invalid API key or OpenAI API is down")
 
+        sum_scale = 100 * (1 - score)
         vulnerability_significance = {}
         vulnerabilities = list(sysinfo["vulnerabilities"].keys())
         for vulnerability in vulnerabilities:
@@ -1141,15 +1162,28 @@ class AnalysisFrame(ctk.CTkScrollableFrame):
             tmp_score, _, _ = sys_score(sysinfo)
             vulnerability_significance[vulnerability] = (tmp_score - score) * 100
             sysinfo["vulnerabilities"][vulnerability] = vuln_obj
+        vuln_sum = sum(vulnerability_significance.values())
+        for vulnerability in vulnerabilities:
+            vulnerability_significance[vulnerability] *= sum_scale / vuln_sum
+        component_sum = sum(component_scores.values())
+        for component in component_scores:
+            component_scores[component] *= sum_scale / component_sum
+        functionality_sum = sum(functionality_scores.values())
+        for functionality in functionality_scores:
+            functionality_scores[functionality] *= sum_scale / functionality_sum
         self.vulns.refresh(vulnerability_significance)
         self.components.refresh(component_scores)
         self.functionalities.refresh(functionality_scores)
+        self.chat.destroy()
+        self.chat = ChatFrame(self, sysinfo)
+        self.chat.grid(row=5, column=1, sticky="new", padx=10, pady=5)
 
 class ChatFrame(ctk.CTkFrame):
     class ChatWindow(ctk.CTkScrollableFrame):
         def __init__(self, master, chat, *args, **kwargs):
             super().__init__(master, *args, **kwargs)
             self.grid_columnconfigure((0, 1, 2), weight=1)
+            self.configure(height=400, width=400)
             self.chat = chat
             self.items = []
             self.refresh()
@@ -1181,14 +1215,17 @@ class ChatFrame(ctk.CTkFrame):
         self.chat = Chat(sysinfo, score, store=True)
 
         self.chat_window = ChatFrame.ChatWindow(self, self.chat)
-        self.chat_window.grid(row=0, column=0, padx=10, pady=5, sticky="nesw")
+        self.chat_window.grid(row=0, column=0, columnspan=2, padx=10, pady=5, sticky="nesw")
 
         self.chat_entry = ctk.CTkEntry(self)
         self.chat_entry.bind("<Return>", lambda event: self.message())
         self.chat_entry.grid(row=1, column=0, padx=10, pady=5, sticky="new")
+        self.send = ReturnButton(self, text="Send", command=self.message)
+        self.send.configure(width=20)
+        self.send.grid(row=1, column=1, padx=10, pady=5, sticky="ne")
 
-        self.new_chat_button = ReturnButton(self, text="New chat", fg_color="#ff0000", hover_color="#bb0000", command=lambda event=None: self.new_chat())
-        self.new_chat_button.grid(row=2, column=0, padx=10, pady=5, sticky="n")
+        self.new_chat_button = ReturnButton(self, text="Reset chat", fg_color="#ff0000", hover_color="#bb0000", command=lambda event=None: self.new_chat())
+        self.new_chat_button.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky="n")
 
     def message(self):
         self.chat.chat(self.chat_entry.get())
@@ -1202,15 +1239,17 @@ class ChatFrame(ctk.CTkFrame):
         self.chat = Chat(self.sysinfo, score, store=True)
         self.chat_window.destroy()
         self.chat_window = ChatFrame.ChatWindow(self, self.chat)
-        self.chat_window.grid(row=0, column=0, padx=10, pady=5, sticky="nesw")
+        self.chat_window.grid(row=0, column=0, columnspan=2, padx=10, pady=5, sticky="nesw")
 
 class SystemMenu(ctk.CTkTabview):
     def __init__(self, master, info, sysname, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.info = info
         self.sysname=sysname
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
-        tabs = ["Components", "Vulnerabilities", "Functionalities", "Analysis", "AI Chat", "Settings"]
+        tabs = ["Components", "Vulnerabilities", "Functionalities", "Analysis", "Settings"]
         for tab in tabs:
             self.add(tab)
             self.tab(tab).grid_columnconfigure(0, weight=1)
@@ -1229,11 +1268,8 @@ class SystemMenu(ctk.CTkTabview):
         self.analysisFrame.grid(row=0, column=0, sticky="nesw")
         self.configure(command=lambda: self.analysisFrame.refresh(self.info["systems"][self.sysname]))
 
-        self.chatFrame = ChatFrame(self.tab("AI Chat"), info["systems"][sysname])
-        self.chatFrame.grid(row=0, column=0, sticky="nesw")
-
         self.systemSettings = SystemSettings(self.tab("Settings"), info, sysname)
-        self.systemSettings.grid(row=0, column=0, )
+        self.systemSettings.grid(row=0, column=0)
 
 class SystemPage(ctk.CTkFrame):
     def __init__(self, master, info, sysname, *args, **kwargs):

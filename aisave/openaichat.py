@@ -15,7 +15,7 @@ class Chat():
 
     def chat(self, message):
         self.messages.append({"role": "user", "content": message})
-        completion = self.client.chat.completions.create(model="gpt-4o", messages=self.messages)
+        completion = self.client.chat.completions.create(model="gpt-4o-mini", messages=self.messages)
         msg = completion.choices[0].message.content
         self.messages.append({"role": "assistant", "content": msg})
         return msg
@@ -42,7 +42,7 @@ class Chat():
             }
         ]
         req_message = [{"role": "user", "content": "Please provide me an updated score for my system, using your knowledge of the descriptions and names. Answer with just the function call."}]
-        completion = self.client.chat.completions.create(model="gpt-4o", messages=self.messages + req_message, tools=tools, tool_choice="required", temperature=0)
+        completion = self.client.chat.completions.create(model="gpt-4o-mini", messages=self.messages + req_message, tools=tools, tool_choice="required", temperature=0)
         return json.loads(completion.choices[0].message.tool_calls[0].function.arguments)["score"]
 
 if __name__ == "__main__":
