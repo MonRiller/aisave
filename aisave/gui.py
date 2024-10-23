@@ -1163,14 +1163,17 @@ class AnalysisFrame(ctk.CTkScrollableFrame):
             vulnerability_significance[vulnerability] = (tmp_score - score) * 100
             sysinfo["vulnerabilities"][vulnerability] = vuln_obj
         vuln_sum = sum(vulnerability_significance.values())
-        for vulnerability in vulnerabilities:
-            vulnerability_significance[vulnerability] *= sum_scale / vuln_sum
+        if vuln_sum > 0:
+            for vulnerability in vulnerabilities:
+                vulnerability_significance[vulnerability] *= sum_scale / vuln_sum
         component_sum = sum(component_scores.values())
-        for component in component_scores:
-            component_scores[component] *= sum_scale / component_sum
+        if component_sum > 0:
+            for component in component_scores:
+                component_scores[component] *= sum_scale / component_sum
         functionality_sum = sum(functionality_scores.values())
-        for functionality in functionality_scores:
-            functionality_scores[functionality] *= sum_scale / functionality_sum
+        if functionality_sum > 0:
+            for functionality in functionality_scores:
+                functionality_scores[functionality] *= sum_scale / functionality_sum
         self.vulns.refresh(vulnerability_significance)
         self.components.refresh(component_scores)
         self.functionalities.refresh(functionality_scores)
